@@ -178,7 +178,7 @@ function joinresults(){
 #################################
 
 
-set -- `getopt -n$0 -u -a --longoptions="inputfile: buildver: humandb: varfile: VCF: chrcol: startcol: endcol: refcol: obscol: vartypecol: convertcoords: geneanno: hgvs: verdbsnp: tfbs: mce: cytoband: segdup: dgv: gwas: ver1000g: cg46: cg69: impactscores: newimpactscores: otherinfo: esp: exac03: spidex: gonl: gerp: cosmic61: cosmic63: cosmic64: cosmic65: cosmic67: cosmic68: clinvar: nci60: outall: outfilt: outinvalid: scriptsdir: dorunannovar: dofilter: filt_dbsnp: filt1000GALL: filt1000GAFR: filt1000GAMR: filt1000GASN: filt1000GEUR: filtESP6500ALL: filtESP6500EA: filtESP6500AA: filtcg46: filtcg69: dummy:" "h:" "$@"` || usage
+set -- `getopt -n$0 -u -a --longoptions="inputfile: buildver: humandb: varfile: VCF: chrcol: startcol: endcol: refcol: obscol: vartypecol: convertcoords: geneanno: hgvs: verdbsnp: tfbs: mce: cytoband: segdup: dgv: gwas: ver1000g: cg46: cg69: impactscores: newimpactscores: otherinfo: esp: exac03: exac03nonpsych: exac03nontcga: dbscsnv11: kaviar_20150923: hrcr1: mitimpact2: mitimpact24: dbnsfp30a: spidex: gonl: gerp: cosmic61: cosmic63: cosmic64: cosmic65: cosmic67: cosmic68: clinvar: nci60: outall: outfilt: outinvalid: scriptsdir: dorunannovar: dofilter: filt_dbsnp: filt1000GALL: filt1000GAFR: filt1000GAMR: filt1000GASN: filt1000GEUR: filtESP6500ALL: filtESP6500EA: filtESP6500AA: filtcg46: filtcg69: dummy:" "h:" "$@"` || usage
 [ $# -eq 0 ] && usage
 
 
@@ -189,7 +189,7 @@ do
         --inputfile)           infile=$2;shift;;      # inputfile
         --buildver)            buildvertmp=$2;shift;; # hg18 or hg19
         --humandb)             humandbtmp=$2;shift;;  # location of humandb database
-         --varfile)            varfile=$2;shift;;     # Y or N  
+        --varfile)             varfile=$2;shift;;     # Y or N  
         --VCF)                 vcf=$2;shift;;         #Y or N
         --chrcol)              chrcol=$2;shift;;      # which column has chr 
         --startcol)            startcol=$2;shift;;    # which column has start coord
@@ -208,14 +208,22 @@ do
         --dgv)                 dgv=$2;shift;;         # Y or N 
         --gwas)                gwas=$2;shift;;        # Y or N 
         --ver1000g)            ver1000g=$2;shift;;    # Y or N 
-        --cg46)                cg46=$2;shift;;
-        --cg69)                cg69=$2;shift;;
+        --cg46)                cg46=$2;shift;;        # Y or N
+        --cg69)                cg69=$2;shift;;        # Y or N
         --impactscores)        impactscores=$2;shift;;    # Y or N 
         --newimpactscores)     newimpactscores=$2;shift;; # Y or N 
         --otherinfo)           otherinfo=$2;shift;;       # display additional columns?
         --scriptsdir)          scriptsdirtmp=$2;shift;;   # Y or N 
         --esp)                 esp=$2;shift;;             # Y or N 
-        --exac03)              exac03=$2;shift;;      # Y or N
+        --exac03)              exac03=$2;shift;;          # Y or N
+        --exac03nonpsych)      exac03nonpsych=$2;shift;;  # Y or N
+        --exac03nontcga)       exac03nontcga=$2;shift;;   # Y or N
+        --dbscsnv11)           dbscsnv11=$2;shift;;
+        --kaviar_20150923)     kaviar_20150923=$2;shift;;
+        --hrcr1)               hrcr1=$2;shift;;
+        --mitimpact2)          mitimpact2=$2;shift;;
+        --mitimpact24)         mitimpact24=$2;shift;;
+        --dbnsfp30a)           dbnsfp30a=$2;shift;;
         --gonl)                gonl=$2;shift;;        # Y or N
         --spidex)              spidex=$2;shift;;      # Y or N
         --gerp)                gerp=$2;shift;;        # Y or N
@@ -1266,10 +1274,160 @@ then
                    print $0
                    }END{}' annovarinput.${buildver}_exac03_dropped > $annovarout
         
-        sed -i '1i\db\tExAC_Freq\tExAC_AFR\tExAC_AMR\tExAC_EAS\tExAC_FIN\tExAC_NFE\tExAC_OTH\tExAC_SAS\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
-        joinresults originalfile $annovarout 10 11 12 13 14 B.ExAC_Freq,B.ExAC_AFR,B.ExAC_AMR,B.ExAC_EAS,B.ExAC_FIN,B.ExAC_NFE,B.ExAC_OTH,B.ExAC_SAS
+        sed -i '1i\db\tExAC_ALL\tExAC_AFR\tExAC_AMR\tExAC_EAS\tExAC_FIN\tExAC_NFE\tExAC_OTH\tExAC_SAS\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 10 11 12 13 14 B.ExAC_ALL,B.ExAC_AFR,B.ExAC_AMR,B.ExAC_EAS,B.ExAC_FIN,B.ExAC_NFE,B.ExAC_OTH,B.ExAC_SAS
     fi
 
+        #ExAC-03 database 
+    if [ $exac03nonpsych == "Y" ]
+    then
+        echo -e "\nExAC03 non-psych Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver --otherinfo -dbtype exac03nonpsych annovarinput $humandb 2>&1
+            
+        #annovarout=annovarinput.${buildver}_exac03_dropped
+        
+        # split allelefrequency column into several columns, one per population
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_exac03nonpsych_dropped > $annovarout
+        
+        sed -i '1i\db\tExAC_non-phsych_ALL\tExAC_non-phsych_AFR\tExAC_non-phsych_AMR\tExAC_non-phsych_EAS\tExAC_non-phsych_FIN\tExAC_non-phsych_NFE\tExAC_non-phsych_OTH\tExAC_non-phsych_SAS\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 10 11 12 13 14 B.ExAC_non-phsych_ALL,B.ExAC_non-phsych_AFR,B.ExAC_non-phsych_AMR,B.ExAC_non-phsych_EAS,B.ExAC_non-phsych_FIN,B.ExAC_non-phsych_NFE,B.ExAC_non-phsych_OTH,B.ExAC_non-phsych_SAS
+    fi
+    
+    #ExAC-03 database 
+    if [ $exac03nontcga == "Y" ]
+    then
+        echo -e "\nExAC03 non-tcga Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver --otherinfo -dbtype exac03nontcga annovarinput $humandb 2>&1
+            
+        #annovarout=annovarinput.${buildver}_exac03_dropped
+        
+        # split allelefrequency column into several columns, one per population
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_exac03nontcga_dropped > $annovarout
+        
+        sed -i '1i\db\tExAC_non-TCGA_ALL\tExAC_non-TCGA_AFR\tExAC_non-TCGA_AMR\tExAC_non-TCGA_EAS\tExAC_non-TCGA_FIN\tExAC_non-TCGA_NFE\tExAC_non-TCGA_OTH\tExAC_non-TCGA_SAS\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 10 11 12 13 14 B.ExAC_non-TCGA_ALL,B.ExAC_non-TCGA_AFR,B.ExAC_non-TCGA_AMR,B.ExAC_non-TCGA_EAS,B.ExAC_non-TCGA_FIN,B.ExAC_non-TCGA_NFE,B.ExAC_non-TCGA_OTH,B.ExAC_non-TCGA_SAS
+    fi
+    
+    #dbscSNV 1.1 
+    if [ $dbscsnv11 == "Y" ]
+    then
+        echo -e "\ndbscSNV11 Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype dbscsnv11 annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_dbscsnv11_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_dbscsnv11_dropped > $annovarout        
+        
+        sed -i '1i\db\tdbscSNV11_ADA_SCORE\tdbscSNV11_RF_SCORE\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 4 5 6 7 8 B.dbscSNV11_ADA_SCORE,B.dbscSNV11_RF_SCORE
+    fi
+    
+    
+    #kaviar_20150923
+    if [ $kaviar_20150923 == "Y" ]
+    then
+        echo -e "\nkaviar_20150923 Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype kaviar_20150923 annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_kaviar_20150923_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_kaviar_20150923_dropped > $annovarout        
+        
+        sed -i '1i\db\tKaviar_AF\tKaviar_AC\tKaviar_AN\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 5 6 7 8 9 B.Kaviar_AF,B.Kaviar_AC,B.Kaviar_AN
+    fi
+    
+    #hrcr1
+    if [ $hrcr1 == "Y" ]
+    then
+        echo -e "\nhrcr1 Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype hrcr1 annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_dbscsnv11_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_hrcr1_dropped > $annovarout        
+        sed -i '1i\db\tHRC_AF\tHRC_AC\tHRC_AN\tHRC_non1000G_AF\tHRC_non1000G_AC\tHRC_non1000g_AN\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 8 9 10 11 12 B.HRC_AF,B.HRC_AC,B.HRC_AN,B.HRC_non1000g_AF,B.HRC_non1000g_AC,B.HRC_non1000g_AN
+    fi
+    
+    #dbnsfp30a
+    if [ $dbnsfp30a == "Y" ]
+    then
+        echo -e "\ndbnsfp30a Annotation"
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype dbnsfp30a annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_dbnsfp30a_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_dbnsfp30a_dropped > $annovarout
+
+        sed -i '1i\db\tdbNSFP_SIFT_score\tdbNSFP_SIFT_pred\tdbNSFP_Polyphen2_HDIV_score\tdbNSFP_Polyphen2_HDIV_pred\tdbNSFP_Polyphen2_HVAR_score\tdbNSFP_Polyphen2_HVAR_pred\tdbNSFP_LRT_score\tdbNSFP_LRT_pred\tdbNSFP_MutationTaster_score\tdbNSFP_MutationTaster_pred\tdbNSFP_MutationAssessor_score\tdbNSFP_MutationAssessor_pred\tdbNSFP_FATHMM_score\tdbNSFP_FATHMM_pred\tdbNSFP_PROVEAN_score\tdbNSFP_PROVEAN_pred\tdbNSFP_VEST3_score\tdbNSFP_CADD_raw\tdbNSFP_CADD_phredDANN_score\tdbNSFP_fathmm-MKL_coding_score\tdbNSFP_fathmm-MKL_coding_pred\tdbNSFP_MetaSVM_score\tdbNSFP_MetaSVM_pred\tdbNSFP_MetaLR_score\tdbNSFP_MetaLR_pred\tdbNSFP_integrated_fitCons_score\tdbNSFP_integrated_confidence_value\tdbNSFP_GERP_RS\tdbNSFP_phyloP7way_vertebrate\tdbNSFP_phyloP20way_mammalian\tdbNSFP_phastCons7way_vertebrate\tdbNSFP_phastCons20way_mammalian\tdbNSFP_SiPhy_29way_logOdds\tdbNSFP_unknown\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 36 37 38 39 40 B.dbNSFP_SIFT_score,B.dbNSFP_SIFT_pred,B.dbNSFP_Polyphen2_HDIV_score,B.dbNSFP_Polyphen2_HDIV_pred,B.dbNSFP_Polyphen2_HVAR_score,B.dbNSFP_Polyphen2_HVAR_pred,B.dbNSFP_LRT_score,B.dbNSFP_LRT_pred,B.dbNSFP_MutationTaster_score,B.dbNSFP_MutationTaster_pred,B.dbNSFP_MutationAssessor_score,B.dbNSFP_MutationAssessor_pred,B.dbNSFP_FATHMM_score,B.dbNSFP_FATHMM_pred,B.dbNSFP_PROVEAN_score,B.dbNSFP_PROVEAN_pred,B.dbNSFP_VEST3_score,B.dbNSFP_CADD_raw,B.dbNSFP_CADD_phredDANN_score,B.dbNSFP_fathmm-MKL_coding_score,B.dbNSFP_fathmm-MKL_coding_pred,B.dbNSFP_MetaSVM_score,B.dbNSFP_MetaSVM_pred,B.dbNSFP_MetaLR_score,B.dbNSFP_MetaLR_pred,B.dbNSFP_integrated_fitCons_score,B.dbNSFP_integrated_confidence_value,B.dbNSFP_GERP_RS,B.dbNSFP_phyloP7way_vertebrate,B.dbNSFP_phyloP20way_mammalian,B.dbNSFP_phastCons7way_vertebrate,B.dbNSFP_phastCons20way_mammalian,B.dbNSFP_SiPhy_29way_logOdds
+        
+    fi
+    
+    #mitimpact2
+    if [ $mitimpact2 == "Y" ]
+    then
+        echo -e "\nmitimpact2 Annotation"        
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype mitimpact2 annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_mitimpact2_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$2)
+                   print $0
+                   }END{}' annovarinput.${buildver}_mitimpact2_dropped > $annovarout
+        
+        sed -i '1i\db\tMITimpact2_Gene_symbol\tMITimpact2_OXPHOS_Complex\tMITimpact2_Ensembl_Gene_ID\tMITimpact2_Ensembl_Protein_ID\tMITimpact2_Uniprot_Name\tMITimpact2_Uniprot_ID\tMITimpact2_NCBI_Gene_ID\tMITimpact2_NCBI_Protein_ID\tMITimpact2_Gene_pos\tMITimpact2_AA_pos\tMITimpact2_AA_sub\tMITimpact2_Codon_sub\tMITimpact2_dbSNP_ID\tMITimpact2_PhyloP_46V\tMITimpact2_PhastCons_46V\tMITimpact2_PhyloP_100V\tMITimpact2_PhastCons_100V\tMITimpact2_SiteVar\tMITimpact2_PolyPhen2_prediction\tMITimpact2_PolyPhen2_score\tMITimpact2_SIFT_prediction\tMITimpact2_SIFT_score\tMITimpact2_FatHmm_prediction\tMITimpact2_FatHmm_score\tMITimpact2_PROVEAN_prediction\tMITimpact2_PROVEAN_score\tMITimpact2_MutAss_prediction\tMITimpact2_MutAss_score\tMITimpact2_EFIN_Swiss_Prot_Score\tMITimpact2_EFIN_Swiss_Prot_Prediction\tMITimpact2_EFIN_HumDiv_Score\tMITimpact2_EFIN_HumDiv_Prediction\tMITimpact2_CADD_score\tMITimpact2_CADD_Phred_score\tMITimpact2_CADD_prediction\tMITimpact2_Carol_prediction\tMITimpact2_Carol_score\tMITimpact2_Condel_score\tMITimpact2_Condel_pred\tMITimpact2_COVEC_WMV\tMITimpact2_COVEC_WMV_prediction\tMITimpact2_PolyPhen2_score_transf\tMITimpact2_PolyPhen2_pred_transf\tMITimpact2_SIFT_score_transf\tMITimpact2_SIFT_pred_transf\tMITimpact2_MutAss_score_transf\tMITimpact2_MutAss_pred_transf\tMITimpact2_Perc_coevo_Sites\tMITimpact2_Mean_MI_score\tMITimpact2_COSMIC_ID\tMITimpact2_Tumor_site\tMITimpact2_Examined_samples\tMITimpact2_Mutation_frequency\tMITimpact2_US\tMITimpact2_Status\tMITimpact2_Associated_disease\tMITimpact2_Presence_in_TD\tMITimpact2_Class_predicted\tMITimpact2_Prob_N\tMITimpact2_Prob_P\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 62 63 64 65 66 B.MITimpact2_Gene_symbol,B.MITimpact2_OXPHOS_Complex,B.MITimpact2_Ensembl_Gene_ID,B.MITimpact2_Ensembl_Protein_ID,B.MITimpact2_Uniprot_Name,B.MITimpact2_Uniprot_ID,B.MITimpact2_NCBI_Gene_ID,B.MITimpact2_NCBI_Protein_ID,B.MITimpact2_Gene_pos,B.MITimpact2_AA_pos,B.MITimpact2_AA_sub,B.MITimpact2_Codon_sub,B.MITimpact2_dbSNP_ID,B.MITimpact2_PhyloP_46V,B.MITimpact2_PhastCons_46V,B.MITimpact2_PhyloP_100V,B.MITimpact2_PhastCons_100V,B.MITimpact2_SiteVar,B.MITimpact2_PolyPhen2_prediction,B.MITimpact2_PolyPhen2_score,B.MITimpact2_SIFT_prediction,B.MITimpact2_SIFT_score,B.MITimpact2_FatHmm_prediction,B.MITimpact2_FatHmm_score,B.MITimpact2_PROVEAN_prediction,B.MITimpact2_PROVEAN_score,B.MITimpact2_MutAss_prediction,B.MITimpact2_MutAss_score,B.MITimpact2_EFIN_Swiss_Prot_Score,B.MITimpact2_EFIN_Swiss_Prot_Prediction,B.MITimpact2_EFIN_HumDiv_Score,B.MITimpact2_EFIN_HumDiv_Prediction,B.MITimpact2_CADD_score,B.MITimpact2_CADD_Phred_score,B.MITimpact2_CADD_prediction,B.MITimpact2_Carol_prediction,B.MITimpact2_Carol_score,B.MITimpact2_Condel_score,B.MITimpact2_Condel_pred,B.MITimpact2_COVEC_WMV,B.MITimpact2_COVEC_WMV_prediction,B.MITimpact2_PolyPhen2_score_transf,B.MITimpact2_PolyPhen2_pred_transf,B.MITimpact2_SIFT_score_transf,B.MITimpact2_SIFT_pred_transf,B.MITimpact2_MutAss_score_transf,B.MITimpact2_MutAss_pred_transf,B.MITimpact2_Perc_coevo_Sites,B.MITimpact2_Mean_MI_score,B.MITimpact2_COSMIC_ID,B.MITimpact2_Tumor_site,B.MITimpact2_Examined_samples,B.MITimpact2_Mutation_frequency,B.MITimpact2_US,B.MITimpact2_Status,B.MITimpact2_Associated_disease,B.MITimpact2_Presence_in_TD,B.MITimpact2_Class_predicted,B.MITimpact2_Prob_N,B.MITimpact2_Prob_P
+    fi
+    
+    #mitimpact24
+    if [ $mitimpact24 == "Y" ]
+    then
+        echo -e "\nmitimpact24 Annotation"        
+        $scriptsdir/annotate_variation.pl --filter -otherinfo --buildver $buildver -dbtype mitimpact24 annovarinput $humandb 2>&1
+    
+        #annovarout="annovarinput.${buildver}_mitimpact24_dropped"
+        awk 'BEGIN{FS="\t"
+                   OFS="\t"
+                   }{
+                   gsub(",","\t",$24)
+                   print $0
+                   }END{}' annovarinput.${buildver}_mitimpact24_dropped > $annovarout
+        
+        sed -i '1i\db\tMITimpact24_Gene_symbol\tMITimpact24_OXPHOS_Complex\tMITimpact24_Ensembl_Gene_ID\tMITimpact24_Ensembl_Protein_ID\tMITimpact24_Uniprot_Name\tMITimpact24_Uniprot_ID\tMITimpact24_NCBI_Gene_ID\tMITimpact24_NCBI_Protein_ID\tMITimpact24_Gene_pos\tMITimpact24_AA_pos\tMITimpact24_AA_sub\tMITimpact24_Codon_sub\tMITimpact24_dbSNP_ID\tMITimpact24_PhyloP_46V\tMITimpact24_PhastCons_46V\tMITimpact24_PhyloP_100V\tMITimpact24_PhastCons_100V\tMITimpact24_SiteVar\tMITimpact24_PolyPhen24_prediction\tMITimpact24_PolyPhen24_score\tMITimpact24_SIFT_prediction\tMITimpact24_SIFT_score\tMITimpact24_FatHmm_prediction\tMITimpact24_FatHmm_score\tMITimpact24_PROVEAN_prediction\tMITimpact24_PROVEAN_score\tMITimpact24_MutAss_prediction\tMITimpact24_MutAss_score\tMITimpact24_EFIN_Swiss_Prot_Score\tMITimpact24_EFIN_Swiss_Prot_Prediction\tMITimpact24_EFIN_HumDiv_Score\tMITimpact24_EFIN_HumDiv_Prediction\tMITimpact24_CADD_score\tMITimpact24_CADD_Phred_score\tMITimpact24_CADD_prediction\tMITimpact24_Carol_prediction\tMITimpact24_Carol_score\tMITimpact24_Condel_score\tMITimpact24_Condel_pred\tMITimpact24_COVEC_WMV\tMITimpact24_COVEC_WMV_prediction\tMITimpact24_PolyPhen24_score_transf\tMITimpact24_PolyPhen24_pred_transf\tMITimpact24_SIFT_score_transf\tMITimpact24_SIFT_pred_transf\tMITimpact24_MutAss_score_transf\tMITimpact24_MutAss_pred_transf\tMITimpact24_Perc_coevo_Sites\tMITimpact24_Mean_MI_score\tMITimpact24_COSMIC_ID\tMITimpact24_Tumor_site\tMITimpact24_Examined_samples\tMITimpact24_Mutation_frequency\tMITimpact24_US\tMITimpact24_Status\tMITimpact24_Associated_disease\tMITimpact24_Presence_in_TD\tMITimpact24_Class_predicted\tMITimpact24_Prob_N\tMITimpact24_Prob_P\tchromosome\tstart\tend\treference\talleleSeq"'"$vcfheader"'"' $annovarout 
+        joinresults originalfile $annovarout 62 63 64 65 66 B.MITimpact24_Gene_symbol,B.MITimpact24_OXPHOS_Complex,B.MITimpact24_Ensembl_Gene_ID,B.MITimpact24_Ensembl_Protein_ID,B.MITimpact24_Uniprot_Name,B.MITimpact24_Uniprot_ID,B.MITimpact24_NCBI_Gene_ID,B.MITimpact24_NCBI_Protein_ID,B.MITimpact24_Gene_pos,B.MITimpact24_AA_pos,B.MITimpact24_AA_sub,B.MITimpact24_Codon_sub,B.MITimpact24_dbSNP_ID,B.MITimpact24_PhyloP_46V,B.MITimpact24_PhastCons_46V,B.MITimpact24_PhyloP_100V,B.MITimpact24_PhastCons_100V,B.MITimpact24_SiteVar,B.MITimpact24_PolyPhen24_prediction,B.MITimpact24_PolyPhen24_score,B.MITimpact24_SIFT_prediction,B.MITimpact24_SIFT_score,B.MITimpact24_FatHmm_prediction,B.MITimpact24_FatHmm_score,B.MITimpact24_PROVEAN_prediction,B.MITimpact24_PROVEAN_score,B.MITimpact24_MutAss_prediction,B.MITimpact24_MutAss_score,B.MITimpact24_EFIN_Swiss_Prot_Score,B.MITimpact24_EFIN_Swiss_Prot_Prediction,B.MITimpact24_EFIN_HumDiv_Score,B.MITimpact24_EFIN_HumDiv_Prediction,B.MITimpact24_CADD_score,B.MITimpact24_CADD_Phred_score,B.MITimpact24_CADD_prediction,B.MITimpact24_Carol_prediction,B.MITimpact24_Carol_score,B.MITimpact24_Condel_score,B.MITimpact24_Condel_pred,B.MITimpact24_COVEC_WMV,B.MITimpact24_COVEC_WMV_prediction,B.MITimpact24_PolyPhen24_score_transf,B.MITimpact24_PolyPhen24_pred_transf,B.MITimpact24_SIFT_score_transf,B.MITimpact24_SIFT_pred_transf,B.MITimpact24_MutAss_score_transf,B.MITimpact24_MutAss_pred_transf,B.MITimpact24_Perc_coevo_Sites,B.MITimpact24_Mean_MI_score,B.MITimpact24_COSMIC_ID,B.MITimpact24_Tumor_site,B.MITimpact24_Examined_samples,B.MITimpact24_Mutation_frequency,B.MITimpact24_US,B.MITimpact24_Status,B.MITimpact24_Associated_disease,B.MITimpact24_Presence_in_TD,B.MITimpact24_Class_predicted,B.MITimpact24_Prob_N,B.MITimpact24_Prob_P
+    fi
+    
+    
     #GoNL database 
     if [ $gonl == "Y" ]
     then

@@ -1,4 +1,4 @@
-<tool id="AnnovarShed" name="ANNOVAR" version="2015oct">
+<tool id="AnnovarShed-test" name="ANNOVAR" version="2016march">
     <description> Annotate a file using ANNOVAR </description>
 
     <requirements>
@@ -10,6 +10,8 @@
         --esp "${esp}"
         --gonl "${gonl}"
         --exac03 "${exac03}"
+        --exac03nonpsych "${exac03nonpsych}"
+        --exac03nontcga "${exac03nontcga}"
         --spidex "${spidex}"
         --gerp "${gerp}"
         --cosmic61 "${cosmic61}"
@@ -33,6 +35,12 @@
         --segdup "${segdup}"
         --dgv "${dgv}"
         --gwas "${gwas}"
+        --dbscsnv11 "${dbscsnv11}"
+        --kaviar_20150923 "${kaviar_20150923}"
+        --hrcr1 "${hrcr1}"
+        --mitimpact2 "${mitimpact2}"
+        --mitimpact24 "${mitimpact24}"
+        --dbnsfp30a "${dbnsfp30a}"
         #if $filetype.type == "other"
             --varfile N
             --VCF N
@@ -134,6 +142,7 @@
             <option value="snp138NonFlagged"> 138 NonFlagged  </option>
             <option value="avsnp138"          > 138            (avSNP, hg19 only) </option>
             <option value="avsnp142"          > 142            (avSNP, hg19/hg38 ) </option>
+            <option value="avsnp144"          > 144            (avSNP, hg19/hg38 ) </option>
         </param>
 
         <param name="ver1000g" type="select" label="Select 1000Genomes Annotation(s)" multiple="true" display="checkboxes"  optional="true" help="2012april database for ALL populations was converted to hg18 using the UCSC liftover program">
@@ -158,6 +167,8 @@
         </param>
 
         <param name="exac03" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with ExAC 03? (The Exome Aggregation Consortium) (hg18/hg19/hg38)" help=" The Exome Aggregation Consortium (ExAC) is a coalition of investigators seeking to aggregate and harmonize exome sequencing data from a wide variety of large-scale sequencing projects, and to make summary data available for the wider scientific community. The data set provided on this website spans 60,706 unrelated individuals sequenced as part of various disease-specific and population genetic studies. See http://exac.broadinstitute.org/faq for more information."/>
+        <param name="exac03nontcga" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with ExAC 03 non-TCGA? (The Exome Aggregation Consortium) (hg18/hg19/hg38)" help="non-TGCA samples"/>
+        <param name="exac03nonpsych" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with ExAC 03 non-Psych? (The Exome Aggregation Consortium) (hg18/hg19/hg38)" help=""/>
 
         <param name="gonl" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with GoNL (Genome of the Netherlands) data? (hg19 only)" help="This is a custom made annotation file, not available from the ANNOVAR website. The database file can be obtained from http://bioinf-galaxian.erasmusmc.nl/public/Data/hg19_gonl.txt "/> 
         <param name="spidex" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with SPIDEX database? (hg19 only)" help="This dataset provides machine-learning prediction on how genetic variants affect RNA splicing. (Xiong et al, Science 2015)"/>
@@ -187,16 +198,14 @@
             <option value="ljb2_siphy"> SiPhy score </option>
         </param>    
         <param name="otherinfo" type="boolean" checked="False" truevalue="-otherinfo" falsevalue="N" label="Also get predictions where possible?" help="e.g. annotated as -score,damaging- or -score,benign- instead of just score"/>
-        <!--  OBSOLETE impact scores, uncomment for backwards compatibility, add argument impactscores to command
-<param name="impactscores" type="select" label="Select functional impact scores annotate with (OBSOLETE)" multiple="true" display="checkboxes" optional="true" help="LJB refers to Liu, Jian, Boerwinkle paper in Human Mutation, pubmed ID 21520341.">
-            <option value="avsift"> AV SIFT </option>
-            <option value="ljbsift"> LJB SIFT (corresponds to 1-SIFT)</option>
-            <option value="pp2"> PolyPhen2 </option>
-            <option value="mutationtaster" > MutationTaster </option>
-            <option value="lrt"> LRT (Likelihood Ratio Test) </option>
-            <option value="phylop"> PhyloP </option>
-        </param>
-            -->
+        
+          <param name="dbscsnv11" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with scSNV 1.1 ? (hg19/hg38)" help=" provides splice site effect prediction by AdaBoost and Random Forest"/>
+        <param name="kaviar_20150923" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with Kaviar (23-09-2015)? (hg19/hg38)" help="170 million variants from 34 projects (13K genomes and 64K exomes) "/>
+        <param name="hrcr1" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with hrcr1 ? (hg19/hg38)" help="40 million variants from 32K samples"/>
+         
+        <param name="mitimpact2" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with MITimpact 2 ? (hg19)" help="an exhaustive collection of pre-computed pathogenicity predictions of human mitochondrial non-synonymous variants"/>
+        <param name="mitimpact24" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with MITimpact 2.4 ? (hg19)" help="an exhaustive collection of pre-computed pathogenicity predictions of human mitochondrial non-synonymous variants"/>
+        <param name="dbnsfp30a" type="boolean" checked="False" truevalue="Y" falsevalue="N" label="Annotate with dbNSFP 3.0a ? (hg18/hg19/hg38)" help="provides whole-genome functional prediction scores on ~20 different algorithms. Now additions to the database include DANN, PROVEAN, fitConsPlease, etc."/>
 
         <!-- prefix for output file so you dont have to manually rename history items -->
         <param name="fname" type="text" value="" label="Prefix for your output file" help="Optional"/>
