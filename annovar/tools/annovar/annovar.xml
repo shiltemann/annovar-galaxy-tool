@@ -1,4 +1,4 @@
-<tool id="AnnovarShed-test" name="ANNOVAR" version="2016march">
+<tool id="AnnovarShed" name="ANNOVAR" version="2016march">
     <description> Annotate a file using ANNOVAR </description>
 
     <requirements>
