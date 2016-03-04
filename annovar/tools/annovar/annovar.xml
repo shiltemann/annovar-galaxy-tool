@@ -7,42 +7,42 @@
 
     <command interpreter="bash">
         annovar.sh
-        --esp ${esp}
-        --gonl ${gonl}
-        --exac03 ${exac03}
-        --spidex ${spidex}
-        --gerp ${gerp}
-        --cosmic61 ${cosmic61}
-        --cosmic63 ${cosmic63}
-        --cosmic64 ${cosmic64}
-        --cosmic65 ${cosmic65}
-        --cosmic67 ${cosmic67}
-        --cosmic68 ${cosmic68}
-        --outall ${annotated}
-        --outinvalid ${invalid}
-        --dorunannovar ${dorun}
-        --inputfile ${infile}
-        --buildver ${reference.fields.dbkey}
-        --humandb ${reference.fields.ANNOVAR_humandb}
-        --scriptsdir ${reference.fields.ANNOVAR_scripts}
-        --verdbsnp ${verdbsnp}
-        --geneanno ${geneanno}
-        --tfbs ${tfbs}
-        --mce ${mce}
-        --cytoband ${cytoband}
-        --segdup ${segdup}
-        --dgv ${dgv}
-        --gwas ${gwas}
+        --esp "${esp}"
+        --gonl "${gonl}"
+        --exac03 "${exac03}"
+        --spidex "${spidex}"
+        --gerp "${gerp}"
+        --cosmic61 "${cosmic61}"
+        --cosmic63 "${cosmic63}"
+        --cosmic64 "${cosmic64}"
+        --cosmic65 "${cosmic65}"
+        --cosmic67 "${cosmic67}"
+        --cosmic68 "${cosmic68}"
+        --outall "${annotated}"
+        --outinvalid "${invalid}"
+        --dorunannovar "${dorun}"
+        --inputfile "${infile}"
+        --buildver "${reference.fields.dbkey}"
+        --humandb "${reference.fields.ANNOVAR_humandb}"
+        --scriptsdir "${reference.fields.ANNOVAR_scripts}"
+        --verdbsnp "${verdbsnp}"
+        --geneanno "${geneanno}"
+        --tfbs "${tfbs}"
+        --mce "${mce}"
+        --cytoband "${cytoband}"
+        --segdup "${segdup}"
+        --dgv "${dgv}"
+        --gwas "${gwas}"
         #if $filetype.type == "other"
             --varfile N
             --VCF N
-            --chrcol ${filetype.col_chr}
-            --startcol ${filetype.col_start}
-            --endcol ${filetype.col_end}
-            --obscol ${filetype.col_obs}
-            --refcol ${filetype.col_ref}
+            --chrcol "${filetype.col_chr}"
+            --startcol "${filetype.col_start}"
+            --endcol "${filetype.col_end}"
+            --obscol "${filetype.col_obs}"
+            --refcol "${filetype.col_ref}"
             #if $filetype.convertcoords.convert == "Y"
-                --vartypecol ${filetype.convertcoords.col_vartype}
+                --vartypecol "${filetype.convertcoords.col_vartype}"
                 --convertcoords Y
             #else
                 --convertcoords N
@@ -57,13 +57,13 @@
             --varfile Y
             --VCF N
         #end if
-        --cg46 ${cgfortysix}
-        --cg69 ${cgsixtynine}
-        --ver1000g ${ver1000g}
-        --hgvs ${hgvs}
-        --otherinfo ${otherinfo}
-        --newimpactscores ${newimpactscores}
-        --clinvar ${clinvar}
+        --cg46 "${cgfortysix}"
+        --cg69 "${cgsixtynine}"
+        --ver1000g "${ver1000g}"
+        --hgvs "${hgvs}"
+        --otherinfo "${otherinfo}"
+        --newimpactscores "${newimpactscores}"
+        --clinvar "${clinvar}"
     </command>
 
     <inputs>
